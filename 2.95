@@ -1,0 +1,12 @@
+typedef unsigned float_bits;
+float_bits float_half(float_bits f)
+{
+	float_bits frac = (f & 0x7FFFFF) >> 1;
+	float_bits f1 = f&0xFF800000+frac;//非规格化数的情况
+	float_bits f2 = f - 0x800000;//规格化数的情况
+	int p = f & 0x7F800000 == 0;//非规格化数返回1规格化数返回0
+	float_bits result = p * f1 + (1 - p) * f2;
+	p = ~(f & 0x7F800000)==0;//移码为全一返回1否则为0
+	result = (1 - p) * result + p * f;
+	return result;
+}
