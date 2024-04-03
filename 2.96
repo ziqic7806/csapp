@@ -4,14 +4,10 @@ int float_f2i(float_bits f)
 	//进行掩码去掉符号位及阶码再加上隐含的1	
 	int i = ((f & 0x7FFFFF) + 0x800000) << 7;//相当于小数部分左移了30位
 	int E = ((f & 0x7F800000) >> 23) - 127;//阶码
-	i = (unsigned)i >> 30 - E;//当E为小于0时i为0
-	unsigned p = ((f & 0x7F80000) != 0);//非规格化数返回0
-	i &= (0xffffffff + (1 - p));//非规格化数加权
-	p ^= 0x807FFFFF;
-	p = (~p == 0);//NaN,无穷返回1否则返回0
-	i = ((0xffffffff + (1 - p)) & 0x80000000) + ((0xffffffff + p) & i);//加权
-	p = 30 - E;
-	p = (p & 0x80000000) >> 31;//溢出返回1否则返回0
+	i &= (((E & 0x8000000) != 0) + 0xffffffff);
+	i = (unsigned)i >> 30 - E;
+	unsigned p = 30 - E;
+	p = (p & 0x80000000) >> 31;//溢出或NaN返回1否则返回0
 	i = ((0xffffffff + (1 - p)) & 0x80000000) + ((0xffffffff + p) & i);//规格化数溢出加权
 	p = (f & 0x80000000) >> 31;//符号位
 	i = ((-i) & (0xffffffff + (1 - p))) + (i & (0xffffffff + p));//符号,舍入加权
